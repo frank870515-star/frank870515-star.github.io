@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>墨西哥工厂行政服务仪表盘</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div id="login-page" class="login-page">
+        <div class="login-container">
+            <h1 class="login-title" data-lang="login_title">墨西哥工厂行政服务仪表盘</h1>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="username" data-lang="username">账号</label>
+                    <input type="text" id="username" placeholder="请输入账号">
+                </div>
+                <div class="form-group">
+                    <label for="password" data-lang="password">密码</label>
+                    <input type="password" id="password" placeholder="请输入密码">
+                </div>
+                <button id="login-btn" class="login-btn" data-lang="login">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 仪表盘页面 -->
+    <div id="dashboard-page" class="dashboard-page hidden">
+        <!-- 顶部导航栏 -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1 data-lang="dashboard_title">墨西哥工厂行政服务仪表盘</h1>
+            </div>
+            <div class="header-right">
+                <button id="lang-switch" class="lang-switch" data-lang="lang_switch">切换语言</button>
+                <button id="logout-btn" class="logout-btn" data-lang="logout">退出登录</button>
+            </div>
+        </header>
+
+        <!-- 使用指南折叠面板 -->
+        <div class="guide-section">
+            <button id="guide-toggle" class="guide-toggle" data-lang="guide_title">使用指南 ▼</button>
+            <div id="guide-content" class="guide-content hidden">
+                <div class="guide-mxadmin" data-lang="guide_mxadmin">
+                    <h3 data-lang="guide_mxadmin_title">墨西哥工厂行政人员操作指南</h3>
+                    <ol>
+                        <li data-lang="guide_mxadmin_step1">点击「Excel模板下载」按钮获取空白模板</li>
+                        <li data-lang="guide_mxadmin_step2">按照模板要求填写月度行政数据</li>
+                        <li data-lang="guide_mxadmin_step3">点击「Excel文件导入」按钮上传填写好的Excel文件</li>
+                        <li data-lang="guide_mxadmin_step4">系统会自动校验数据格式，如有错误请根据提示修正</li>
+                        <li data-lang="guide_mxadmin_step5">导入成功后，仪表盘会自动刷新显示最新数据</li>
+                    </ol>
+                </div>
+                <div class="guide-hqadmin" data-lang="guide_hqadmin">
+                    <h3 data-lang="guide_hqadmin_title">总部员工操作指南</h3>
+                    <ol>
+                        <li data-lang="guide_hqadmin_step1">登录后即可查看实时行政数据仪表盘</li>
+                        <li data-lang="guide_hqadmin_step2">使用筛选功能查看特定时间段的数据</li>
+                        <li data-lang="guide_hqadmin_step3">点击图表右上角的「保存为图片」按钮下载图表</li>
+                        <li data-lang="guide_hqadmin_step4">点击「全量数据下载」或「筛选后数据下载」按钮下载数据文件</li>
+                        <li data-lang="guide_hqadmin_step5">支持Excel和CSV两种格式下载</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮区域（仅mxadmin可见） -->
+        <div id="action-buttons" class="action-buttons hidden">
+            <button id="download-template-btn" class="btn btn-primary" data-lang="download_template">Excel模板下载</button>
+            <button id="import-excel-btn" class="btn btn-success" data-lang="import_excel">Excel文件导入</button>
+            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;">
+        </div>
+
+
+
+        <!-- 数据概览卡片 -->
+        <div class="overview-cards">
+            <div class="card">
+                <div class="card-icon">⭐</div>
+                <div class="card-content">
+                    <h3 data-lang="satisfaction_score">满意度评分</h3>
+                    <p id="satisfaction-score" class="card-value">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">✅</div>
+                <div class="card-content">
+                    <h3 data-lang="sla_compliance">SLA合格率</h3>
+                    <p id="sla-compliance" class="card-value">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👥</div>
+                <div class="card-content">
+                    <h3 data-lang="entry_rate">成功入境占比</h3>
+                    <p id="entry-rate" class="card-value">-</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <h3 data-lang="total_expenses">四大费用合计</h3>
+                    <p id="total-expenses" class="card-value">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="charts-container">
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 data-lang="satisfaction_sla_trend">满意度与SLA趋势</h3>
+                        <button class="chart-download" data-chart="satisfaction-sla" data-lang="download_chart">保存为图片</button>
+                    </div>
+                    <div id="satisfaction-sla-chart" class="chart"></div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 data-lang="response_time_trend">工单响应时长趋势</h3>
+                        <button class="chart-download" data-chart="response-time" data-lang="download_chart">保存为图片</button>
+                    </div>
+                    <div id="response-time-chart" class="chart"></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 data-lang="expenses_trend">费用趋势</h3>
+                        <div class="chart-controls">
+                            <button class="chart-control-btn active" data-view="monthly" data-lang="expenses_view_monthly">单月详情</button>
+                            <button class="chart-control-btn" data-view="yearly" data-lang="expenses_view_yearly">全年趋势</button>
+                        </div>
+                        <button class="chart-download" data-chart="expenses" data-lang="download_chart">保存为图片</button>
+                    </div>
+                    <div id="expenses-chart" class="chart"></div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-header">
+                        <h3 data-lang="entry_ratio">成功入境占比</h3>
+                        <button class="chart-download" data-chart="entry-ratio" data-lang="download_chart">保存为图片</button>
+                    </div>
+                    <div id="entry-ratio-chart" class="chart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-section">
+            <div class="table-header">
+                <h3 data-lang="data_table">月度数据表格</h3>
+                <div class="table-controls">
+                    <button id="sort-asc-btn" class="btn btn-secondary" data-lang="sort_asc">升序排序</button>
+                    <button id="sort-desc-btn" class="btn btn-secondary" data-lang="sort_desc">降序排序</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="data-table" class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-lang="month">月度</th>
+                            <th data-lang="satisfaction_score">满意度评分</th>
+                            <th data-lang="response_time">响应时长(小时)</th>
+                            <th data-lang="accommodation">住宿费用(MXN)</th>
+                            <th data-lang="vehicle">用车费用(MXN)</th>
+                            <th data-lang="catering">餐饮费用(MXN)</th>
+                            <th data-lang="office">办公费用(MXN)</th>
+                            <th data-lang="sla_compliance">SLA合格率(%)</th>
+                            <th data-lang="total_employees">总人数</th>
+                            <th data-lang="success_employees">成功人数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="10" data-lang="no_data">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据下载区域 -->
+        <div class="download-section">
+            <button id="download-all-btn" class="btn btn-primary" data-lang="download_all">全量数据下载</button>
+            <button id="download-filtered-btn" class="btn btn-primary" data-lang="download_filtered">筛选后数据下载</button>
+            <div class="download-format">
+                <label data-lang="download_format">下载格式：</label>
+                <select id="download-format">
+                    <option value="xlsx" data-lang="format_excel">Excel (.xlsx)</option>
+                    <option value="csv" data-lang="format_csv">CSV (.csv)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2 id="modal-title" data-lang="modal_title">提示</h2>
+            <p id="modal-message"></p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="btn btn-primary" data-lang="confirm">确认</button>
+                <button id="modal-cancel" class="btn btn-secondary" data-lang="cancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
